@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>What the Cabal?</title>
+
+		<meta name="description" content="A framework for easily creating beautiful presentations using HTML">
+		<meta name="author" content="Hakim El Hattab">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<link rel="stylesheet" href="css/reveal.min.css">
+		<link rel="stylesheet" href="css/theme/default.css" id="theme">
+
+		<!-- For syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- If the query includes 'print-pdf', include the PDF print sheet -->
+		<script>
+			if( window.location.search.match( /print-pdf/gi ) ) {
+				var link = document.createElement( 'link' );
+				link.rel = 'stylesheet';
+				link.type = 'text/css';
+				link.href = 'css/print/pdf.css';
+				document.getElementsByTagName( 'head' )[0].appendChild( link );
+			}
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+				<section>
+					<h1>What The Cabal?</h1>
+					<h3>Getting started with Cabal</h3>
+				</section>
+
+				<section>
+					<h2>My first experience with Cabal</h2>
+					<img src="img/dog.jpg">				
+				</section>
+
+				<section>
+					<h2>How to use Cabal</h2>
+					<img class="fragment" src="img/cry.jpg">
+				</section>
+
+				<section>
+					<h2>Why learn to use Cabal?</h2>
+					<h3>Package management</h3>
+					<p>
+						<ul class="fragment">
+							<li>Creating packages</li>
+							<li>Dependency management</li>
+							<li>Publishing to Hackage</li>
+						</ul>					
+					</p>
+				</section>
+
+				<section>
+					<h2>Why learn to use Cabal?</h2>
+					<h3>Working better and faster</h3>
+					<p>
+						<ul class="fragment">
+							<li>Running your app</li>
+							<li>REPL</li>
+							<li>Automated testing</li>
+							<li>Linting</li>
+							<li>Documentation generation</li>
+							<li>Benchmarking</li>
+						</ul>					
+					</p>
+				</section>
+
+				<section>
+					<h2>Before you start</h2>
+					<h3>Latest cabal?</h3>					
+					<p>
+						<ul>
+							<li>Make sure you have the latest version of <code>cabal</code></li>
+						</ul>
+					</p>
+					<p>
+						<code>
+							> cabal --version
+						</code>
+					</p>
+					<p>
+						<code>
+						  cabal-install version 1.20.0.3
+						  using version 1.20.0.1 of the Cabal library
+						</code>
+					</p>
+				</section>
+
+				<section>
+					<h2>Before you start</h2>
+					<h3>Updating cabal</h3>
+					<p>
+						<code>
+							> cabal install cabal cabal-install
+						</code>
+					</p>
+					<p>
+						<ul>
+							<li>Builds the latest <code>cabal</code> and places it in <code>~/.cabal/bin</code></li>
+							<li>Make sure you have <code>~/.cabal/bin</code> in your shell's <code>PATH</code></li>
+						</ul>
+					</p>
+				</section>				
+
+				<section>
+					<h2>Starting off a project</h2>
+					<p>
+						<code>> cabal init</code>
+					</p>
+					<p>
+						<ul class="fragment">
+							<li>Creates a <code>.cabal</code> file to start your project</li>
+							<li>
+								The <code>.cabal</code> file contains the settings for your project
+							</li>
+						</ul>
+					</p>
+				</section>
+
+				<section>
+					<h2>Create your sandbox</h2>				
+					<p>
+						<code>> cabal sandbox init</code>
+					</p>					
+
+					<p>
+						<ul>
+							<li>
+								<code>.cabal-sandbox</code> – folder for libraries and build artifacts
+							</li>
+							<li>
+								<code>cabal.sandbox.config</code> – file with target folders for libraries and build artifacts
+							</li>
+						</ul>
+					</p>
+				</section>
+
+				<section>
+					<h2>Finding libraries</h2>				
+					<h4>Hackage – <a href="http://hackage.haskell.org/">hackage.haskell.org</a></h4>
+					<img src="img/hackage.png">
+					<p><small>Central package archive for Haskell</small></p>
+
+				</section>
+
+				<section>
+					<h2>Adding libraries</h2>
+					<p>					
+						Add to <code>build-depends</code> in your <code>.cabal</code> file
+					</p>
+					<p>
+						<img src="img/build-depends.png">
+					</p>
+				</section>
+
+				<section>
+					<h2>Installing libraries</h2>
+					<p>					
+						<code>
+							> cabal install
+						</code>
+					</p>
+					<h4>Useful flags</h4>
+					<ul>
+						<li>
+							<code>--dry-run</code> – See what Cabal plans to do
+						</li>
+						<li>
+							<code>--only-dependencies</code> – Only installs dependencies and not your library or executable
+						</li>
+						<li>
+							<code>--enable-test</code> – Installs dependencies for any automated test suites
+						</li>
+						<li>
+							<code>-jN</code> – Builds N packages in parallel
+						</li>
+					</ul>					
+				</section>
+
+
+				<section>
+					<h2>Building your app</h2>
+					<p>
+						<code>> cabal build</code>
+					</p>
+					<p>
+						<ul>
+							<li>Builds your app and places it in <code>dist/</code></li>
+						</ul>
+					</p>
+				</section>
+
+				<section>
+					<h2>Running your app</h2>
+					<p>
+						<code>> cabal run</code>
+					</p>
+					<p>
+						<ul>
+							<li>Runs the <code>executable</code> defined in your <code>.cabal</code> file</li>
+							<li>
+								If multiple <code>executable</code>s exists, you can specify the name using 
+								<code>cabal run [name]</code> to pick which one.
+							</li>
+						</ul>
+					</p>
+				</section>
+
+
+				<section>
+					<h2>The REPL</h2>
+					<p>
+						<code>> cabal repl</code>
+					</p>
+					<p>
+						<ul>
+							<li>Opens up a REPL (read-eval-print loop) for you to experiment</li>
+							<li>Includes access to all your dependencies and your code</li>
+							<li>Can defer type errors with <code>-fdefer-type-error</code></li>
+						</ul>
+					</p>
+				</section>
+
+				<section>
+					<h2>Uh, something went wrong</h2>
+					<p>
+						The dreaded <code>ExitFailure 1</code> during <code>cabal install</code>
+					</p>
+					<ul>
+						<li>Check for missing executables in error message</li>
+						<li>Linker failed due to lack of memory</li>
+						<li>Use sandboxes to isolate dependencies</li>
+						<li>
+							Flags to try
+							<ul>
+								<li><code>--reorder-goals</code> – Searches different branches</li>
+								<li><code>--max-backjumps=1000</code> – Searches more branches</li>
+								<li><code>--allow-newer</code> – Ignores upper bounds in <code>build-depends</code></li>
+							</ul>
+						</li>
+						<li>Stackage</li>
+						<li>Delete <code>~/.ghc</code>, GHC's default user package location</li>
+
+					</ul>					
+				</section>
+
+				<section>
+					<h2>Things I missed</h2>
+					<ul>
+						<li><code>cabal freeze</code> – Freezes version of dependencies</li>
+						<li><code>cabal upload</code> – Publishing to Hackage</li>
+						<li><code>cabal test</code> – Automated testing</li>
+						<li><code>cabal test hlint</code> – Linting</li>
+						<li><code>cabal bench</code> – Benchmarking your code</li>
+						<li><code>cabal haddock</code> – Documentation generation</li>
+						<li><code>cabal haddock</code> – Documentation generation</li>
+						<li>Interaction with <code>ghc-pkg</code></li>				
+						<li>Much, much more</li>
+					</ul>
+				</section>
+
+
+				<section>
+					<h2>References</h2>
+				  <p>
+					  <a href="http://katychuang.com/cabal-guide/">
+					  	cabal - the simple guide – by Katy Chuang
+					  </a>
+				  </p>
+				  <p>
+				  	<a href="http://taylor.fausak.me/2014/03/04/haskeleton-a-haskell-project-skeleton/">
+				  		Haskeleton: a Haskell project skeleton – by Taylor Fausak
+				  	</a>
+				  </p>
+				  <p>
+					  <a href="http://softwaresimply.blogspot.com/2012/11/a-practical-cabal-primer.html">
+					  	A Practical Cabal Primer – by mightybyte
+					  </a>
+					  </p>
+				  <p>
+					  <a href="http://softwaresimply.blogspot.com/2014/07/haskell-best-practices-for-avoiding.html">
+					  	Haskell Best Practices for Avoiding "Cabal Hell" – by mightybyte
+					  </a>
+				  </p>
+				  <p>
+				  	<a href="http://www.haskell.org/cabal/">
+				  		Cabal documentation
+				  	</a>
+				 	</p>
+				</section>
+
+				<section>
+					<h1>Questions?</h1>
+				</section>
+
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.min.js"></script>
+
+		<script>
+
+			// Full list of configuration options available here:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: false,
+				progress: false,
+				history: true,
+				center: true,
+
+				theme: 'sky', // available themes are in /css/theme
+				transition: Reveal.getQueryHash().transition || 'fade', // default/cube/page/concave/zoom/linear/fade/none
+
+				// Parallax scrolling
+				// parallaxBackgroundImage: 'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg',
+				// parallaxBackgroundSize: '2100px 900px',
+
+				// Optional libraries used to extend on reveal.js
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+					{ src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
