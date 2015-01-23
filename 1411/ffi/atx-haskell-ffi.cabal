@@ -1,0 +1,16 @@
+name:                atx-haskell-ffi
+version:             0.1.0.0
+synopsis:            A quick example project demonstrating the very basics of the FFI.
+license:             MIT
+license-file:        LICENSE
+author:              Josh Cartwright
+maintainer:          joshc@eso.teric.us
+build-type:          Simple
+cabal-version:       >=1.10
+
+library
+  exposed-modules:     Demo
+  c-sources:           cbits/demo.c
+  cc-options:          -fPIC
+  build-depends:       base >=4.7 && <4.8
+  default-language:    Haskell2010

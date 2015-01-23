@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="author" content="Josh Cartwright" />
+  <meta name="author" content="Austin Haskell Users Group" />
+  <meta name="dcterms.date" content="2014-11-24" />
+  <title>What the FFI?!</title>
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="stylesheet" href="reveal.js/css/reveal.min.css"/>
+    <style type="text/css">code{white-space: pre;}</style>
+    <style type="text/css">
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; }
+code > span.dt { color: #902000; }
+code > span.dv { color: #40a070; }
+code > span.bn { color: #40a070; }
+code > span.fl { color: #40a070; }
+code > span.ch { color: #4070a0; }
+code > span.st { color: #4070a0; }
+code > span.co { color: #60a0b0; font-style: italic; }
+code > span.ot { color: #007020; }
+code > span.al { color: #ff0000; font-weight: bold; }
+code > span.fu { color: #06287e; }
+code > span.er { color: #ff0000; font-weight: bold; }
+    </style>
+    <link rel="stylesheet" href="reveal.js/css/theme/simple.css" id="theme">
+    <!-- If the query includes 'print-pdf', include the PDF print sheet -->
+    <script>
+      if( window.location.search.match( /print-pdf/gi ) ) {
+        var link = document.createElement( 'link' );
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = 'reveal.js/css/print/pdf.css';
+        document.getElementsByTagName( 'head' )[0].appendChild( link );
+      }
+    </script>
+    <!--[if lt IE 9]>
+    <script src="reveal.js/lib/js/html5shiv.js"></script>
+    <![endif]-->
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+<section>
+    <h1 class="title">What the FFI?!</h1>
+    <h2 class="author">Josh Cartwright</h2>
+    <h2 class="author">Austin Haskell Users Group</h2>
+    <h3 class="date">November 24, 2014</h3>
+</section>
+
+<section id="foreign-function-interface" class="slide level1">
+<h1>Foreign Function Interface</h1>
+<blockquote>
+<p>... its aim is to support the implementation of programs in a mixture of Haskell and other languages such that the source code is portable across different implementations of Haskell and non-Haskell systems as well as independent of the architecture and operating system.</p>
+</blockquote>
+<aside class="notes">
+<p>We all know that Haskell will take over the world. Static types will solve all of the worlds problems. In a few years, we'll be in a Haskell-driven utopia.</p>
+<p>Unfortunately, until we get there, Haskell exists as part of a larger software ecosystem. In order for Haskell to be most useful in this environment, it needs to be adapted to allow intercall/interoperability with code not written in Haskell (&quot;Foreign&quot;) code.</p>
+<p>The Foreign Function Interface (FFI) is a specification/extension of Haskell syntax that allows for describing an interface to this &quot;Foreign&quot; code. It came into existance as a GHC extension to allow for calling C code, but has since been part of the Haskell 2010 report, and adopted with other Haskell compilers to interact with languages other than C.</p>
+Or, in GIF form:
+</aside>
+</section>
+<section id="section" class="slide level1">
+<h1></h1>
+<p><img src="images/teamwork.gif" alt="teamwork" /><br /></p>
+</section>
+<section id="goal-implement-a-simple-c-binding" class="slide level1">
+<h1>Goal: implement a simple C binding</h1>
+<ul>
+<li>Assumption: already familiar with Haskell syntax</li>
+<li>Assumption: already familiar with Haskell typeclasses</li>
+</ul>
+<aside class="notes">
+<p>The FFI is a big topic, one that I could not possibly describe in it's entirety during this presentation. Instead, I'll be focusing attention on one &quot;vertical slice&quot;, calling a C function from haskell. This will allow me to cover the &quot;big&quot; pieces, if your interested in learning more, see the references on the last slide.</p>
+With this in mind, the hope is that I can explain how to do this, even if you don't necessarily have a background in C. With that, let's cover at least some C basics:
+</aside>
+</section>
+<section id="c-primitive-types" class="slide level1">
+<h1>C: Primitive types</h1>
+<ul>
+<li><code class="sourceCode c"><span class="dt">char</span></code></li>
+<li><code class="sourceCode c"><span class="dt">int</span></code></li>
+<li><code class="sourceCode c"><span class="dt">short</span> <span class="dt">int</span></code></li>
+<li><code class="sourceCode c"><span class="dt">long</span> <span class="dt">int</span></code></li>
+<li><code class="sourceCode c"><span class="dt">long</span> <span class="dt">long</span> <span class="dt">int</span></code></li>
+<li><code class="sourceCode c"><span class="dt">float</span></code></li>
+<li><code class="sourceCode c"><span class="dt">double</span></code></li>
+</ul>
+<aside class="notes">
+C defines a handful of primitive types. char, int, short int, long int, and long long int, are integral types, they represent integers. Their types can be modified with the keyword &quot;unsigned&quot;, meaning that the values are all &gt;0.
+</aside>
+</section>
+<section id="c-pointers" class="slide level1">
+<h1>C: Pointers</h1>
+<p><img src="images/donttouch.gif" alt="don&#39;t touch" /><br /></p>
+</section>
+<section id="c-pointers-1" class="slide level1">
+<h1>C: Pointers</h1>
+<pre class="sourceCode c"><code class="sourceCode c"><span class="dt">int</span> *example1;
+
+<span class="dt">double</span> *example2;
+
+<span class="dt">double</span> **example3;</code></pre>
+<aside class="notes">
+In addition to primitive types, C supports the concept of a &quot;pointer&quot;. I won't be going into too many details about pointers, but I will state that a pointer represents an address in memory, which points to something with a specific type.
+</aside>
+</section>
+<section id="c-strings" class="slide level1">
+<h1>C: Strings</h1>
+<pre class="sourceCode c"><code class="sourceCode c"><span class="dt">char</span> *example4;</code></pre>
+<aside class="notes">
+<p>In C, strings are are represented as a series of single byte characters, followed by a null byte.</p>
+What I intend to demonstrate here is that example4, while being declared as a &quot;pointer to char&quot;, it may in fact point to an array of characters. This will become important later.
+</aside>
+</section>
+<section id="c-struct" class="slide level1">
+<h1>C: <code class="sourceCode c"><span class="kw">struct</span></code></h1>
+<pre class="sourceCode c"><code class="sourceCode c"><span class="kw">struct</span> day {
+   <span class="dt">unsigned</span> <span class="dt">int</span> month;
+   <span class="dt">unsigned</span> <span class="dt">int</span> day;
+   <span class="dt">unsigned</span> <span class="dt">int</span> year;
+};
+
+<span class="kw">struct</span> student {
+   <span class="dt">char</span>       *name;
+   <span class="kw">struct</span> day birthday;
+};
+
+<span class="kw">struct</span> student john = {
+   .name     = <span class="st">&quot;John Smith&quot;</span>,
+   .birthday =  {
+      .month = <span class="dv">11</span>,
+      .day   = <span class="dv">24</span>,
+      .year  = <span class="dv">1972</span>,
+   },
+};</code></pre>
+<aside class="notes">
+<p>From the primitive types and pointers, you can construct more complicated types, such as these two, 'struct day' and 'struct student'. A 'struct' is effectively a poor man's product type. An object of type 'struct day' is a tuple with members 'month' of type 'unsigned int' and 'day' also of type 'unsigned int'.</p>
+<p>A struct may also contain another, as shown with 'struct student'. In this case, an object of type 'struct student' contains a pointer to a char and also 'birthday' which is of type 'struct day'.</p>
+Lastly, here's an example of the declaration of an object of struct student named 'john'.
+</aside>
+</section>
+<section id="section-1" class="slide level1">
+<h1></h1>
+<pre class="sourceCode c"><code class="sourceCode c">
+<span class="kw">struct</span> day {
+   <span class="dt">unsigned</span> <span class="dt">int</span> month;
+   <span class="dt">unsigned</span> <span class="dt">int</span> day;
+   <span class="dt">unsigned</span> <span class="dt">int</span> year;
+};
+
+<span class="kw">struct</span> student {
+   <span class="dt">char</span>       *name;
+   <span class="kw">struct</span> day birthday;
+};</code></pre>
+<pre class="sourceCode haskell"><code class="sourceCode haskell">
+<span class="kw">import </span><span class="dt">Foreign.C.Types</span>
+
+<span class="kw">data</span> <span class="dt">Day</span> <span class="fu">=</span> <span class="dt">Day</span> {<span class="ot"> month ::</span> <span class="dt">CUInt</span>
+               ,<span class="ot"> day   ::</span> <span class="dt">CUInt</span>
+               ,<span class="ot"> year  ::</span> <span class="dt">CUInt</span>
+               }
+  <span class="kw">deriving</span> (<span class="dt">Show</span>)
+
+<span class="kw">data</span> <span class="dt">Student</span> <span class="fu">=</span> <span class="dt">Student</span> {<span class="ot"> name ::</span> <span class="dt">String</span>
+                       ,<span class="ot"> birthday ::</span> <span class="dt">Day</span>
+                       }
+  <span class="kw">deriving</span> (<span class="dt">Show</span>)</code></pre>
+<aside class="notes">
+The data types from the C API and the Haskell equivalent.
+</aside>
+</section>
+<section id="primitive-type-mapping" class="slide level1">
+<h1>Primitive type mapping</h1>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">C</th>
+<th style="text-align: left;"></th>
+<th style="text-align: right;">Signed</th>
+<th style="text-align: right;">Unsigned</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><code class="sourceCode c"><span class="dt">char</span></code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: right;"><code class="sourceCode haskell"><span class="dt">CChar</span></code></td>
+<td style="text-align: right;"><code class="sourceCode haskell"><span class="dt">CUChar</span></code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code class="sourceCode c"><span class="dt">int</span></code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: right;"><code class="sourceCode haskell"><span class="dt">CInt</span></code></td>
+<td style="text-align: right;"><code class="sourceCode haskell"><span class="dt">CUInt</span></code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code class="sourceCode c"><span class="dt">short</span> <span class="dt">int</span></code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: right;"><code class="sourceCode haskell"><span class="dt">CShort</span></code></td>
+<td style="text-align: right;"><code class="sourceCode haskell"><span class="dt">CUShort</span></code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code class="sourceCode c"><span class="dt">long</span> <span class="dt">int</span></code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: right;"><code class="sourceCode haskell"><span class="dt">CLong</span></code></td>
+<td style="text-align: right;"><code class="sourceCode haskell"><span class="dt">CULong</span></code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code class="sourceCode c"><span class="dt">long</span> <span class="dt">long</span> <span class="dt">int</span></code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: right;"><code class="sourceCode haskell"><span class="dt">CLLong</span></code></td>
+<td style="text-align: right;"><code class="sourceCode haskell"><span class="dt">CULLong</span></code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code class="sourceCode c"><span class="dt">float</span></code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: right;"><code class="sourceCode haskell"><span class="dt">CFloat</span></code></td>
+<td style="text-align: right;">N/A</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code class="sourceCode c"><span class="dt">double</span></code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: right;"><code class="sourceCode haskell"><span class="dt">CDouble</span></code></td>
+<td style="text-align: right;">N/A</td>
+</tr>
+</tbody>
+</table>
+<aside class="notes">
+As seen on the previous page, Foreign.C.Types defines a few types which correspond to their C equivalents. Here is a more complete table.
+</aside>
+</section>
+<section id="c-functions" class="slide level1">
+<h1>C: Functions</h1>
+<pre class="sourceCode c"><code class="sourceCode c"><span class="kw">struct</span> student *get_student(<span class="dt">unsigned</span> <span class="dt">int</span> id);
+
+<span class="dt">void</span> update_student(<span class="dt">unsigned</span> <span class="dt">int</span> id, <span class="kw">struct</span> student *s);</code></pre>
+<aside class="notes">
+<p>Along with types, C also has functions, and they are declared as follows.</p>
+<p>The first function is named 'get_student', and accepts as an argument an unsigned int. It returns a pointer to an object of type 'struct student'.</p>
+In the second case, a function named 'update_student' accepts an unsigned integer and a pointer to an object of type 'struct student' and returns nothing (void).
+</aside>
+</section>
+<section id="section-2" class="slide level1">
+<h1></h1>
+<pre class="sourceCode c"><code class="sourceCode c">
+<span class="kw">struct</span> student *get_student(<span class="dt">unsigned</span> <span class="dt">int</span> id);
+
+<span class="dt">void</span> update_student(<span class="dt">unsigned</span> <span class="dt">int</span> id, <span class="kw">struct</span> student *s);</code></pre>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">{-# LANGUAGE ForeignFunctionInterface #-}</span>
+
+foreign <span class="kw">import </span>ccall &quot;get_student&quot;
+<span class="ot">   c_get_student ::</span> <span class="dt">CUInt</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> (<span class="dt">Ptr</span> <span class="dt">Student</span>)
+
+foreign <span class="kw">import </span>ccall &quot;update_student&quot;
+<span class="ot">   c_update_student ::</span> <span class="dt">CUInt</span> <span class="ot">-&gt;</span> <span class="dt">Ptr</span> <span class="dt">Student</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> ()</code></pre>
+<aside class="notes">
+<p>And for the function mappings.</p>
+<p>Here we see for the first time a few keywords, these keywords are available when you've enabled the ForeignFunctionInterface language extension: - foreign : indicates that this function is visible externally to haskell - import : indicates that this function is being imported, that is, it's being used by Haskell and is defined in C - ccall: indicates the calling convention used to call this function</p>
+<p>In addition, there is a <code class="sourceCode haskell"><span class="dt">String</span></code> argument which is used to give the corresponding name known to C, the name of this identifier in Haskell, and the function type.</p>
+So, we've got these Ptr Students floating around, how are we expected to make use of them?
+</aside>
+</section>
+<section id="section-3" class="slide level1">
+<h1></h1>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">class</span> <span class="dt">Storable</span> a <span class="kw">where</span>
+<span class="ot">   sizeOf ::</span> a <span class="ot">-&gt;</span> <span class="dt">Int</span>
+
+<span class="ot">   alignment ::</span> a <span class="ot">-&gt;</span> <span class="dt">Int</span>
+
+<span class="ot">   peek ::</span> <span class="dt">Ptr</span> a <span class="ot">-&gt;</span> <span class="dt">IO</span> a
+
+<span class="ot">   poke ::</span> <span class="dt">Ptr</span> a <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> <span class="dt">IO</span> ()</code></pre>
+<aside class="notes">
+<p>A type which implements Storable means that it's capable of being converted to/from an unstructured memory buffer.</p>
+This typeclass is defined in Foreign.Storable
+</aside>
+</section>
+<section id="section-4" class="slide level1">
+<h1></h1>
+<pre class="sourceCode haskell"><code class="sourceCode haskell">
+<span class="kw">data</span> <span class="dt">Day</span> <span class="fu">=</span> <span class="dt">Day</span> {<span class="ot"> month ::</span> <span class="dt">CUInt</span>,<span class="ot"> day ::</span> <span class="dt">CUInt</span>,<span class="ot"> year ::</span> <span class="dt">CUInt</span> }
+   <span class="kw">deriving</span> (<span class="dt">Show</span>)
+
+<span class="kw">instance</span> <span class="dt">Storable</span> <span class="dt">Day</span> <span class="kw">where</span>
+  sizeOf _    <span class="fu">=</span> <span class="dv">12</span>
+  alignment _ <span class="fu">=</span> <span class="dv">4</span>
+
+  peek ptr <span class="fu">=</span> <span class="kw">do</span>
+     m <span class="ot">&lt;-</span> peekByteOff ptr <span class="dv">0</span>
+     d <span class="ot">&lt;-</span> peekByteOff ptr <span class="dv">4</span>
+     y <span class="ot">&lt;-</span> peekByteOff ptr <span class="dv">8</span>
+     return (<span class="dt">Day</span> m d y)
+
+  poke ptr (<span class="dt">Day</span> m d y) <span class="fu">=</span> <span class="kw">do</span>
+     pokeByteOff ptr <span class="dv">0</span> m
+     pokeByteOff ptr <span class="dv">4</span> d
+     pokeByteOff ptr <span class="dv">8</span> y
+
+<span class="ot">peekByteOff ::</span> <span class="dt">Storable</span> a <span class="ot">=&gt;</span> <span class="dt">Ptr</span> b <span class="ot">-&gt;</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> a
+<span class="ot">pokeByteOff ::</span> <span class="dt">Storable</span> a <span class="ot">=&gt;</span> <span class="dt">Ptr</span> b <span class="ot">-&gt;</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> <span class="dt">IO</span> ()</code></pre>
+</section>
+<section id="section-5" class="slide level1">
+<h1></h1>
+<pre class="sourceCode haskell"><code class="sourceCode haskell">
+<span class="kw">data</span> <span class="dt">Student</span> <span class="fu">=</span> <span class="dt">Student</span> {<span class="ot"> name ::</span> <span class="dt">String</span>,<span class="ot"> birthday ::</span> <span class="dt">Day</span> }
+   <span class="kw">deriving</span> (<span class="dt">Show</span>)
+
+<span class="kw">instance</span> <span class="dt">Storable</span> <span class="dt">Student</span> <span class="kw">where</span>
+  sizeOf _    <span class="fu">=</span> <span class="dv">24</span>
+  alignment _ <span class="fu">=</span> <span class="dv">8</span>
+
+  peek ptr <span class="fu">=</span> <span class="kw">do</span>
+     np <span class="ot">&lt;-</span> peekByteOff ptr <span class="dv">0</span>
+     n <span class="ot">&lt;-</span> peekCString np
+     d <span class="ot">&lt;-</span> peekByteOff ptr <span class="dv">8</span>
+     return (<span class="dt">Student</span> n d)
+
+  poke ptr (<span class="dt">Student</span> n d) <span class="fu">=</span> withCString n <span class="fu">$</span> \nameptr <span class="ot">-&gt;</span> <span class="kw">do</span>
+    pokeByteOff ptr <span class="dv">0</span> nameptr
+    pokeByteOff ptr <span class="dv">8</span> d
+
+<span class="ot">withCString ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> (<span class="dt">CString</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> a) <span class="ot">-&gt;</span> <span class="dt">IO</span> a</code></pre>
+<p><em>NOTE</em>: This usage of withCString is <em>wrong</em>! We end up writing a pointer to the 'struct student' object which becomes invalid/potentially freed after the poke! The correct way to do this might be to use ForeignPtr. (This note added after the presentation given).</p>
+</section>
+<section id="demo" class="slide level1">
+<h1>Demo</h1>
+</section>
+<section id="section-6" class="slide level1">
+<h1></h1>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">get_student ::</span> <span class="dt">CUInt</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> <span class="dt">Student</span>
+get_student n <span class="fu">=</span> c_get_student n <span class="fu">&gt;&gt;=</span> peek</code></pre>
+</section>
+<section id="section-7" class="slide level1">
+<h1></h1>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">c_update_student ::</span> <span class="dt">CUInt</span> <span class="ot">-&gt;</span> <span class="dt">Ptr</span> <span class="dt">Student</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> ()
+
+<span class="ot">update_student ::</span> <span class="dt">CUInt</span> <span class="ot">-&gt;</span> <span class="dt">Student</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> ()</code></pre>
+<aside class="notes">
+Recall the type of c_update_student. Just like the get_student example, we'll want to create a higher-level update_student API which makes things a bit easier. But, how would we implement this? We need to somehow get an instance of Ptr Student...
+</aside>
+</section>
+<section id="section-8" class="slide level1">
+<h1></h1>
+<pre class="sourceCode haskell"><code class="sourceCode haskell">
+<span class="kw">import </span><span class="dt">Foreign.Marshal.Alloc</span> (alloca)
+
+<span class="ot">alloca ::</span> <span class="dt">Storable</span> a <span class="ot">=&gt;</span> (<span class="dt">Ptr</span> a <span class="ot">-&gt;</span> <span class="dt">IO</span> b) <span class="ot">-&gt;</span> <span class="dt">IO</span> b</code></pre>
+<aside class="notes">
+How do we use this thing?
+</aside>
+</section>
+<section id="section-9" class="slide level1">
+<h1></h1>
+<pre class="sourceCode haskell"><code class="sourceCode haskell">
+<span class="kw">import </span><span class="dt">Foreign.Marshal.Alloc</span> (alloca)
+
+<span class="ot">update_student ::</span> <span class="dt">CUInt</span> <span class="ot">-&gt;</span> <span class="dt">Student</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> ()
+update_student n s <span class="fu">=</span> alloca <span class="fu">$</span> \ptr <span class="ot">-&gt;</span> <span class="kw">do</span>
+   poke ptr s
+   c_update_student n ptr</code></pre>
+<aside class="notes">
+<p>Here, we are creating a update_student function which a much more convenient type to work with. Under the hood we make use of alloca to get a handle on a buffer large enough to hold a Student object.</p>
+We then make use of the Student Storable instance to write a Student object into this buffer and call the imported c_update_student.
+</aside>
+</section>
+<section id="demo-1" class="slide level1">
+<h1>Demo</h1>
+</section>
+<section id="the-end.-thanks" class="slide level1">
+<h1>The End. Thanks!</h1>
+<p><span class="citation" data-cites="joshcartwright">@joshcartwright</span></p>
+<p>joshc on freenode</p>
+<p>#haskell.austin</p>
+</section>
+<section id="references" class="slide level1">
+<h1>References</h1>
+<ul>
+<li><a href="https://www.haskell.org/onlinereport/haskell2010/">Haskell 2010 Report</a></li>
+<li><a href="https://www.haskell.org/haskellwiki/FFI_Introduction">FFI Introducion on Haskellwiki</a></li>
+<li><a href="http://book.realworldhaskell.org/read/interfacing-with-c-the-ffi.html">RWH chapter on FFI</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Application_binary_interface">ABI on wikipedia</a></li>
+<li><a href="https://downloads.haskell.org/~ghc/7.2.1/docs/html/users_guide/hsc2hs.html">hsc2hs manual</a></li>
+</ul>
+</section>
+    </div>
+  </div>
+
+
+  <script src="reveal.js/lib/js/head.min.js"></script>
+  <script src="reveal.js/js/reveal.min.js"></script>
+
+  <script>
+
+      // Full list of configuration options available here:
+      // https://github.com/hakimel/reveal.js#configuration
+      Reveal.initialize({
+        controls: true,
+        progress: true,
+        history: true,
+        center: true,
+        theme: 'sky', // available themes are in /css/theme
+        transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
+
+        // Optional libraries used to extend on reveal.js
+        dependencies: [
+          { src: 'reveal.js/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+          { src: 'reveal.js/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+          { src: 'reveal.js/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } },
+//          { src: 'reveal.js/plugin/search/search.js', async: true, condition: function() { return !!document.body.classList; }, }
+//          { src: 'reveal.js/plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
+]});
+    </script>
+    </body>
+</html>
